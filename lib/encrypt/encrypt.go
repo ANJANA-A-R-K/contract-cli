@@ -53,7 +53,7 @@ enhanced security.`
 	CertFlagName                  = "cert"
 	CertFlagDescription           = "Path to encryption certificate file"
 	CertVersionFlagName           = "ver"
-	CertVersionFlagDescription    = "Encryption certificate version (e.g., 26.2.0, 25.11.0). Uses latest if not specified"
+	CertVersionFlagDescription    = "Encryption certificate version. For --os ccco: use the product bundle version (e.g. 1.2.2 for GA, 1.2.2.1 or 1.2.2.2 for fixpack). For --os ccrt/ccrv/hpvs: use the cert version (e.g. 26.9.1). Uses latest if not specified"
 	PrivateKeyFlagName            = "priv"
 	PrivateKeyFlagDescription     = "Path to private key file for signing"
 	PasswordFlagName              = "password"

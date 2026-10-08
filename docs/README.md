@@ -253,7 +253,7 @@ contract-cli base64-tgz \
   --in ./compose-folder \
   --output encrypted \
   --os ccco \
-  --ver 25.12.0
+  --ver 1.2.2.2
 ```
 
 **Using standard input (pipe input):**
@@ -1000,8 +1000,11 @@ contract-cli list-encryptioncert-versions
 
 Output:
 ```json
-{"ccco":["25.12.0","25.10.0"],"ccrt":["26.5.0","26.2.0"],"ccrv":["26.4.1","25.11.0"],"hpvs":["26.5.0","26.2.0"]}
+{"ccco":["1.2.2.2","1.2.2.1","1.2.2"],"ccrt":["26.5.0","26.2.0"],"ccrv":["26.4.1","25.11.0"],"hpvs":["26.5.0","26.2.0"]}
 ```
+
+> **Note:** CCCO versions are product bundle versions (`x.x.x` for GA release, `x.x.x.x` for fixpack).
+> Use `--ver 1.2.2` for the GA install, `--ver 1.2.2.2` for fixpack 2, etc.
 
 **List all available encryption certificate versions in YAML format:**
 ```bash
@@ -1011,8 +1014,9 @@ contract-cli list-encryptioncert-versions --format yaml
 Output:
 ```yaml
 ccco:
-  - 25.12.0
-  - 25.10.0
+  - 1.2.2.2
+  - 1.2.2.1
+  - 1.2.2
 ccrt:
   - 26.5.0
   - 26.2.0

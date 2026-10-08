@@ -29,7 +29,15 @@ const (
 	ParameterLongDescription  = `List all available embedded encryption certificate versions for IBM Confidential Computing platforms.
 
 Shows certificate versions organized by platform (ccrt, ccrv, ccco, hpvs). Use this to discover
-which certificate versions are available before using the --ver flag with encrypt commands.`
+which certificate versions are available before using the --ver flag with encrypt commands.
+
+For --os ccco: versions are product bundle versions (x.x.x for GA, x.x.x.x for fixpack).
+  Example: {"ccco":["1.2.2.2","1.2.2.1","1.2.2"]}
+  - 1.2.2.2 = latest fixpack (n)
+  - 1.2.2.1 = previous fixpack (n-1)
+  - 1.2.2   = GA release (n-2)
+
+For --os ccrt/ccrv/hpvs: versions are date-based cert versions (unchanged).`
 	OsVersionFlagName        = "os"
 	OsVersionFlagDescription = "Filter by platform (ccrt, ccrv, ccco, or hpvs). Shows all platforms if not specified"
 	OutputFlagName           = "out"
