@@ -53,7 +53,7 @@ enhanced security.`
 	CertFlagName                  = "cert"
 	CertFlagDescription           = "Path to encryption certificate file"
 	CertVersionFlagName           = "ver"
-	CertVersionFlagDescription    = "Encryption certificate version. For --os ccco: use the product bundle version (x.x.x for a mod release, x.x.x.x for a fixpack; see list-encryptioncert-versions). For --os ccrt/ccrv/hpvs: use the cert version (e.g. 26.9.1). Uses latest if not specified"
+	CertVersionFlagDescription    = common.CertVersionFlagDescription
 	PrivateKeyFlagName            = "priv"
 	PrivateKeyFlagDescription     = "Path to private key file for signing"
 	PasswordFlagName              = "password"
