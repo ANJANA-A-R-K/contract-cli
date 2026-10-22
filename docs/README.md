@@ -1000,11 +1000,23 @@ contract-cli list-encryptioncert-versions
 
 Output:
 ```json
-{"ccco":["1.2.2.1","1.2.2","1.2.1"],"ccrt":["26.5.0","26.2.0"],"ccrv":["26.4.1","25.11.0"],"hpvs":["26.5.0","26.2.0"]}
+{"ccco":["1.2.2.2","1.2.2.1","1.2.2","1.2.1","1.2.0"],"ccrt":["26.5.0","26.2.0"],"ccrv":["26.4.1","25.11.0"],"hpvs":["26.5.0","26.2.0"]}
 ```
 
-> **Note:** CCCO versions are product bundle versions (`x.x.x` for GA release, `x.x.x.x` for fixpack).
-> Use `--ver 1.2.1` or `--ver 1.2.2` for GA installs, `--ver 1.2.2.1` for the latest fixpack.
+> **Note:** CCCO versions are product bundle versions (`x.x.x` for mod release, `x.x.x.x` for fixpack).
+> Three mod releases are supported (n=1.2.2, n-1=1.2.1, n-2=1.2.0). Fixpacks share their parent mod's certificate.
+> Only declared versions are accepted by `--ver`; anything else returns an error.
+> Use `--os ccco` for the grouped mod/fixpack view.
+
+**List CCCO versions grouped by mod release:**
+```bash
+contract-cli list-encryptioncert-versions --os ccco
+```
+
+Output:
+```json
+{"ccco":[{"mod":"1.2.2","fixpacks":["1.2.2.1","1.2.2.2"]},{"mod":"1.2.1","fixpacks":[]},{"mod":"1.2.0","fixpacks":[]}]}
+```
 
 **List all available encryption certificate versions in YAML format:**
 ```bash
@@ -1014,9 +1026,11 @@ contract-cli list-encryptioncert-versions --format yaml
 Output:
 ```yaml
 ccco:
+  - 1.2.2.2
   - 1.2.2.1
   - 1.2.2
   - 1.2.1
+  - 1.2.0
 ccrt:
   - 26.5.0
   - 26.2.0

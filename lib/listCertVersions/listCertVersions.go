@@ -31,11 +31,10 @@ const (
 Shows certificate versions organized by platform (ccrt, ccrv, ccco, hpvs). Use this to discover
 which certificate versions are available before using the --ver flag with encrypt commands.
 
-For --os ccco: versions are product bundle versions (x.x.x for GA, x.x.x.x for fixpack).
-  Example: {"ccco":["1.2.2.1","1.2.2","1.2.1"]}
-  - 1.2.2.1 = latest fixpack (n)
-  - 1.2.2   = GA release (n-1)
-  - 1.2.1   = previous GA release (n-2)
+For --os ccco: versions are product bundle versions (x.x.x for mod release, x.x.x.x for fixpack),
+grouped by mod release. Three mod releases are supported (n, n-1, n-2); fixpacks share their
+parent mod's certificate and are dropped together with it.
+  Example: {"ccco":[{"mod":"1.2.2","fixpacks":["1.2.2.1","1.2.2.2"]},{"mod":"1.2.1","fixpacks":[]},{"mod":"1.2.0","fixpacks":[]}]}
 
 For --os ccrt/ccrv/hpvs: versions are date-based cert versions (unchanged).`
 	OsVersionFlagName        = "os"
@@ -71,7 +70,10 @@ func ValidateInput(cmd *cobra.Command) (string, string, string, error) {
 	return osVersion, outputPath, format, nil
 }
 
-// Process generates the certificate version listing
+// Process generates the certificate version listing.
+// For --os ccco, returns grouped output (mod releases with their fixpacks) via
+// HpcrListCccoEncCertVersions. For all other platforms, returns a flat sorted
+// version list via HpcrListAvailableEncCertVersions.
 func Process(osVersion, format string) (string, error) {
 	// Normalize OS version to lowercase if provided
 	if osVersion != "" {
@@ -83,19 +85,28 @@ func Process(osVersion, format string) (string, error) {
 		format = "json"
 	}
 
-	// For JSON and YAML formats, return the raw output from the library
-	if format == "json" || format == "yaml" {
-		result, err := certificate.HpcrListAvailableEncCertVersions(osVersion, format)
+	if format != "json" && format != "yaml" {
+		return "", fmt.Errorf("invalid format '%s'. Valid formats: json, yaml", format)
+	}
+
+	// CCCO uses grouped output — mod releases with fixpacks nested under them
+	if osVersion == "ccco" {
+		result, err := certificate.HpcrListCccoEncCertVersions(format)
 		if err != nil {
-			if osVersion != "" {
-				return "", fmt.Errorf("no certificates found for platform '%s'. Valid platforms: ccrt, ccrv, ccco, hpvs", osVersion)
-			}
-			return "", fmt.Errorf("failed to get available certificates - %v", err)
+			return "", fmt.Errorf("failed to get ccco certificate versions - %v", err)
 		}
 		return result, nil
 	}
 
-	return "", fmt.Errorf("invalid format '%s'. Valid formats: json, yaml", format)
+	// All other platforms (ccrt, ccrv, hpvs) or no filter — flat sorted list
+	result, err := certificate.HpcrListAvailableEncCertVersions(osVersion, format)
+	if err != nil {
+		if osVersion != "" {
+			return "", fmt.Errorf("no certificates found for platform '%s'. Valid platforms: ccrt, ccrv, ccco, hpvs", osVersion)
+		}
+		return "", fmt.Errorf("failed to get available certificates - %v", err)
+	}
+	return result, nil
 }
 
 // Output returns the result string (no I/O, just returns the formatted string)
