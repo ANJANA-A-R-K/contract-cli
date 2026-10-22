@@ -1040,7 +1040,7 @@ contract-cli list-encryptioncert-versions
 
 Output:
 ```json
-{"ccco":["1.2.2.1","1.2.2","1.2.1"],"ccrt":["26.5.0","26.2.0"],"ccrv":["26.4.1","25.11.0"],"hpvs":["26.5.0","26.2.0"]}
+{"ccco":["1.2.2.2","1.2.2.1","1.2.2","1.2.1","1.2.0"],"ccrt":["26.5.0","26.2.0"],"ccrv":["26.4.1","25.11.0"],"hpvs":["26.5.0","26.2.0"]}
 ```
 
 > **Note:** CCCO versions are product bundle versions (`x.x.x` for a mod release, `x.x.x.x` for a fixpack).
@@ -1055,7 +1055,7 @@ contract-cli list-encryptioncert-versions --os ccco
 
 Output (latest mod release first; `--ver` accepts any `mod` or `fixpacks` value shown):
 ```json
-{"ccco":[{"mod":"1.2.2","fixpacks":["1.2.2.1"]},{"mod":"1.2.1","fixpacks":[]}]}
+{"ccco":[{"mod":"1.2.2","fixpacks":["1.2.2.1","1.2.2.2"]},{"mod":"1.2.1","fixpacks":[]},{"mod":"1.2.0","fixpacks":[]}]}
 ```
 
 YAML (`--format yaml`):
@@ -1064,7 +1064,10 @@ ccco:
     - mod: 1.2.2
       fixpacks:
         - 1.2.2.1
+        - 1.2.2.2
     - mod: 1.2.1
+      fixpacks: []
+    - mod: 1.2.0
       fixpacks: []
 ```
 
@@ -1081,9 +1084,11 @@ contract-cli list-encryptioncert-versions --format yaml
 Output:
 ```yaml
 ccco:
+  - 1.2.2.2
   - 1.2.2.1
   - 1.2.2
   - 1.2.1
+  - 1.2.0
 ccrt:
   - 26.5.0
   - 26.2.0
