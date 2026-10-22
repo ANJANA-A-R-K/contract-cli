@@ -483,7 +483,9 @@ contract-cli download-certificate \
 
 ### sign-contract
 
-Generates a signed contract from a contract with encrypted workload and env sections.
+Signs a pre-encrypted contract. Accepts either a combined encrypted contract file via
+`--in`, or separate encrypted env and workload files via `--env` and `--workload`.
+The signing key is always provided via `--priv`.
 
 #### Usage
 
@@ -495,33 +497,71 @@ contract-cli sign-contract [flags]
 
 | Flag | Type | Required | Description |
 |------|------|----------|-------------|
-| `--in` | string | Yes | Path to encrypted IBM Confidential Computing contract YAML file (use '-' for standard input) |
-| `--priv` | string | Yes | Path to private key for signing |
+| `--in` | string | conditional | Path to pre-assembled encrypted contract YAML (`env:` + `workload:` keys). Use `-` for standard input. Mutually exclusive with `--env`/`--workload`. |
+| `--env` | string | conditional | Path to file containing the encrypted env section (`contract-basic.…`). Must be used together with `--workload`. Mutually exclusive with `--in`. |
+| `--workload` | string | conditional | Path to file containing the encrypted workload section (`contract-basic.…`). Must be used together with `--env`. Mutually exclusive with `--in`. |
+| `--priv` | string | **Yes** | Path to private key for signing |
 | `--password` | string | No | Password for encrypted private key |
-| `--out` | string | No | Path to save signed and encrypted contract |
+| `--out` | string | No | Path to save signed and encrypted contract (prints to stdout if omitted) |
 | `-h, --help` | - | No | Display help information |
+
+> **Input rules**
+> - Provide either `--in` **or** both `--env` + `--workload` — not both groups at once.
+> - `--env` and `--workload` must always be supplied as a pair; providing only one is an error.
+> - `--priv` is always required regardless of which input mode is used.
+> - Standard input (`-`) is supported **only** with `--in`. Pass a full pre-assembled encrypted contract YAML (containing both `env:` and `workload:` keys) on stdin. `--env` and `--workload` accept file paths only and do not support stdin.
 
 #### Examples
 
-**Sign a contract:**
+**Sign a pre-assembled encrypted contract file:**
 ```bash
-contract-cli sign-contract --in contract.yaml --priv private.pem
+contract-cli sign-contract --in encrypted-contract.yaml --priv private.pem
 ```
 
 **Sign and save to file:**
 ```bash
-contract-cli sign-contract --in contract.yaml --priv private.pem --out signed-contract.yaml
+contract-cli sign-contract \
+  --in encrypted-contract.yaml \
+  --priv private.pem \
+  --out signed-contract.yaml
 ```
 
-**Using standard input:**
+**Sign by providing encrypted env and workload as separate files:**
 ```bash
-cat contract.yaml | contract-cli sign-contract --in - --priv private.pem
+contract-cli sign-contract \
+  --env  encrypted-env.txt \
+  --workload encrypted-workload.txt \
+  --priv private.pem \
+  --out signed-contract.yaml
+```
+
+**Sign from separate files — output to stdout:**
+```bash
+contract-cli sign-contract \
+  --env  encrypted-env.txt \
+  --workload encrypted-workload.txt \
+  --priv private.pem
+```
+
+**Using standard input (--in path only):**
+```bash
+cat encrypted-contract.yaml | contract-cli sign-contract --in - --priv private.pem
 ```
 
 **Using password-protected private key:**
 ```bash
 contract-cli sign-contract \
-  --in contract.yaml \
+  --in encrypted-contract.yaml \
+  --priv private-encrypted.pem \
+  --password "your-secure-password" \
+  --out signed-contract.yaml
+```
+
+**Using password-protected private key with separate env/workload files:**
+```bash
+contract-cli sign-contract \
+  --env  encrypted-env.txt \
+  --workload encrypted-workload.txt \
   --priv private-encrypted.pem \
   --password "your-secure-password" \
   --out signed-contract.yaml
@@ -1478,7 +1518,7 @@ The command outputs a complete OPA v1 Rego policy including:
 ---
 
 ### initdata
-Create initdata annotation from signed and encrypted contract for IBM Confidential Computing Containers for Red Hat OpenShift Container Platform. Supports both Peer Pod and Baremetal solutions.
+Create initdata annotation from signed and encrypted contract for IBM Confidential Computing Containers for Red Hat OpenShift Container Platform. Supports both Peer Pod and Baremetal solutions, and optionally embeds extra root certificates into the `cdh.toml` section.
 
 #### Usage
 
@@ -1490,14 +1530,15 @@ contract-cli initdata [flags]
 
 | Flag | Type | Required | Description |
 |------|------|----------|-------------|
-| `--in` | string | Yes | Path to signed & encrypted contract YAML file (use '-' for standard input) |
+| `--in` | string | Yes | Path to signed & encrypted contract YAML file (use `-` for standard input) |
 | `--sehdr` | string | No | Path to SE header binary file (.bin) for baremetal solution |
+| `--extra_root_certificates` | string (repeatable) | No | Path to a PEM certificate file to embed in `cdh.toml` `extra_root_certificates`. Can be specified multiple times for multiple certs |
 | `--out` | string | No | Path to store gzipped & encoded initdata value |
 | `-h, --help` | - | No | Display help information |
 
 #### Examples
 
-**Create initdata for Peer Pod solution without SE header binary:**
+**Create initdata for Peer Pod solution:**
 ```bash
 contract-cli initdata --in signed_encrypted_contract.yaml
 ```
@@ -1510,21 +1551,32 @@ contract-cli initdata \
   --out initdata.txt
 ```
 
-**Save output to file for peerpod solution without SE header binary:**
+**Embed a single extra root certificate:**
 ```bash
 contract-cli initdata \
   --in signed_encrypted_contract.yaml \
-  --out initdata-annotation.txt
+  --extra_root_certificates root-ca.pem \
+  --out initdata.txt
 ```
 
-**Save output to file for baremetal solution with SE header binary:**
+**Embed multiple extra root certificates:**
+```bash
+contract-cli initdata \
+  --in signed_encrypted_contract.yaml \
+  --extra_root_certificates root-ca1.pem \
+  --extra_root_certificates root-ca2.pem \
+  --out initdata.txt
+```
+
+**Baremetal with SE header and extra root certificates:**
 ```bash
 contract-cli initdata \
   --in signed_encrypted_contract.yaml \
   --sehdr se-header.bin \
-  --out initdata-annotation.txt
+  --extra_root_certificates root-ca1.pem \
+  --extra_root_certificates root-ca2.pem \
+  --out initdata.txt
 ```
-
 
 **Using standard input:**
 ```bash
@@ -1536,6 +1588,8 @@ cat signed_encrypted_contract.yaml | contract-cli initdata --in -
 - With `--sehdr`, the command generates initdata for baremetal solution
 - Without `--sehdr`, the command generates initdata for Peer Pod solution
 - The SE header binary file is automatically encoded to base64 before being included in the initdata
+- When `--extra_root_certificates` is provided, the certificates are embedded in a `cdh.toml` entry inside the initdata with an `aa.toml` entry included automatically
+- `--extra_root_certificates` can be specified multiple times to include more than one certificate
 - Output is gzipped and base64 encoded, ready to use as an initdata annotation
 
 ---
