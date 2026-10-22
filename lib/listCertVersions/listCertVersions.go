@@ -80,7 +80,6 @@ func Process(osVersion, format string) (string, error) {
 
 	// For JSON and YAML formats, return the raw output from the library
 	if format == "json" || format == "yaml" {
-		// CCCO is listed grouped by mod release, with fixpacks nested under each
 		if osVersion == "ccco" {
 			result, err := certificate.HpcrListCccoEncCertVersions(format)
 			if err != nil {
